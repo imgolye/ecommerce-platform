@@ -1,0 +1,44 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: gateway
+  redis:
+    host: localhost
+    port: 6379
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8001
+          predicates:
+            - Path=/user/**
+        - id: merchant-service
+          uri: http://localhost:8002
+          predicates:
+            - Path=/merchant/**
+        - id: goods-service
+          uri: http://localhost:8003
+          predicates:
+            - Path=/goods/**
+        - id: order-service
+          uri: http://localhost:8004
+          predicates:
+            - Path=/order/**
+        - id: pay-service
+          uri: http://localhost:8005
+          predicates:
+            - Path=/pay/**
+        - id: marketing-service
+          uri: http://localhost:8006
+          predicates:
+            - Path=/marketing/**
+        - id: live-service
+          uri: http://localhost:8007
+          predicates:
+            - Path=/live/**
+        - id: logistics-service
+          uri: http://localhost:8008
+          predicates:
+            - Path=/logistics/**
