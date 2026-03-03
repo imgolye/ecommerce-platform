@@ -42,7 +42,7 @@ public class CartController {
             return Result.success(savedCart);
         } catch (Exception e) {
             log.error("添加到购物车失败", e);
-            return Result.error(500, "添加失败");
+            return Result.failed(500, "添加失败");
         }
     }
     
@@ -58,7 +58,7 @@ public class CartController {
             return Result.success();
         } catch (Exception e) {
             log.error("更新购物车数量失败", e);
-            return Result.error(500, "更新失败");
+            return Result.failed(500, "更新失败");
         }
     }
     
@@ -74,7 +74,7 @@ public class CartController {
             return Result.success();
         } catch (Exception e) {
             log.error("移出购物车失败", e);
-            return Result.error(500, "移出失败");
+            return Result.failed(500, "移出失败");
         }
     }
     
@@ -91,7 +91,7 @@ public class CartController {
             return Result.success(cartList);
         } catch (Exception e) {
             log.error("查询购物车失败", e);
-            return Result.error(500, "查询失败");
+            return Result.failed(500, "查询失败");
         }
     }
     
@@ -108,7 +108,7 @@ public class CartController {
             return Result.success();
         } catch (Exception e) {
             log.error("清空购物车失败", e);
-            return Result.error(500, "清空失败");
+            return Result.failed(500, "清空失败");
         }
     }
 }

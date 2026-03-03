@@ -45,7 +45,7 @@ public class GoodsFavoriteController {
             return Result.success();
         } catch (Exception e) {
             log.error("添加收藏失败", e);
-            return Result.error(500, "添加失败");
+            return Result.failed(500, "添加失败");
         }
     }
     
@@ -66,7 +66,7 @@ public class GoodsFavoriteController {
             return Result.success();
         } catch (Exception e) {
             log.error("取消收藏失败", e);
-            return Result.error(500, "取消失败");
+            return Result.failed(500, "取消失败");
         }
     }
     
@@ -86,7 +86,7 @@ public class GoodsFavoriteController {
             return Result.success(favorites);
         } catch (Exception e) {
             log.error("查询收藏列表失败", e);
-            return Result.error(500, "查询失败");
+            return Result.failed(500, "查询失败");
         }
     }
     
@@ -103,11 +103,11 @@ public class GoodsFavoriteController {
             // TODO: 从JWT中提取当前用户ID
             // Long userId = getCurrentUserId();
             
-            boolean isFavorite = goodsFavoriteService.checkFavorite(userId, goodsId);
+            boolean isFavorite = goodsFavoriteService.isFavorited(userId, goodsId);
             return Result.success(isFavorite);
         } catch (Exception e) {
             log.error("检查收藏状态失败", e);
-            return Result.error(500, "检查失败");
+            return Result.failed(500, "检查失败");
         }
     }
 }

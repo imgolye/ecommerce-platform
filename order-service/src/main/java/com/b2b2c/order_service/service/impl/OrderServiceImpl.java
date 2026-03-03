@@ -64,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateOrderStatus(Long id, Integer newStatus) {
+    public Order updateOrderStatus(Long id, Integer newStatus) {
         Order order = orderMapper.selectById(id);
         if (order == null) {
             throw new BusinessException(404, "订单不存在");

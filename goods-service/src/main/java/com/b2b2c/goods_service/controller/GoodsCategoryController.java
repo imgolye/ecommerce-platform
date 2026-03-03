@@ -1,6 +1,7 @@
 package com.b2b2c.goods_service.controller;
 
 import com.b2b2c.common.core.web.Result;
+import com.b2b2c.goods_service.dto.GoodsCategoryTreeDTO;
 import com.b2b2c.goods_service.entity.GoodsCategory;
 import com.b2b2c.goods_service.service.GoodsCategoryService;
 import io.swagger.annotations.Api;
@@ -34,7 +35,7 @@ public class GoodsCategoryController {
 
     @ApiOperation("获取分类树")
     @GetMapping("/tree")
-    public Result<List<GoodsCategory>> getTree() {
+    public Result<List<GoodsCategoryTreeDTO>> getTree() {
         return Result.success(categoryService.getCategoryTree());
     }
 

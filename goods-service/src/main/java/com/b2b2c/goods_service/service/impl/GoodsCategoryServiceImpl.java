@@ -58,6 +58,13 @@ public class GoodsCategoryServiceImpl implements GoodsCategoryService {
     }
     
     @Override
+    public List<GoodsCategory> getChildrenByParentId(Long parentId) {
+        QueryWrapper<GoodsCategory> wrapper = new QueryWrapper<>();
+        wrapper.eq("parent_id", parentId);
+        return categoryMapper.selectList(wrapper);
+    }
+    
+    @Override
     public GoodsCategory updateCategory(Long id, GoodsCategory category) {
         category.setId(id);
         categoryMapper.updateById(category);

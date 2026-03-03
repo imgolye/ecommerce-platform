@@ -30,7 +30,6 @@ public class GoodsSkuServiceImpl implements GoodsSkuService {
     @Autowired
     private GoodsSkuMapper goodsSkuMapper;
     
-    @Override
     public GoodsSku createSku(GoodsSku sku) {
         goodsSkuMapper.insert(sku);
         return sku;
@@ -39,7 +38,6 @@ public class GoodsSkuServiceImpl implements GoodsSkuService {
     /**
      * ✅ 性能优化：添加分页限制
      */
-    @Override
     public List<GoodsSku> getSkuByGoodsId(Long goodsId) {
         QueryWrapper<GoodsSku> wrapper = new QueryWrapper<>();
         wrapper.eq("goods_id", goodsId)
@@ -48,19 +46,16 @@ public class GoodsSkuServiceImpl implements GoodsSkuService {
         return goodsSkuMapper.selectList(wrapper);
     }
     
-    @Override
     public GoodsSku getSkuById(Long id) {
         return goodsSkuMapper.selectById(id);
     }
     
-    @Override
     public GoodsSku updateSku(Long id, GoodsSku sku) {
         sku.setId(id);
         goodsSkuMapper.updateById(sku);
         return sku;
     }
     
-    @Override
     public void deleteSku(Long id) {
         goodsSkuMapper.deleteById(id);
     }
@@ -68,7 +63,6 @@ public class GoodsSkuServiceImpl implements GoodsSkuService {
     /**
      * ✅ 并发优化：原子更新库存
      */
-    @Override
     public void updateSkuStock(Long id, Integer stock) {
         UpdateWrapper<GoodsSku> wrapper = new UpdateWrapper<>();
         wrapper.eq("id", id)
@@ -77,10 +71,13 @@ public class GoodsSkuServiceImpl implements GoodsSkuService {
         goodsSkuMapper.update(null, wrapper);
     }
     
+    public void updateStock(Long id, Integer stock) {
+        updateSkuStock(id, stock);
+    }
+    
     /**
      * ✅ 并发优化：原子扣减库存（防止超卖）
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deductStock(Long id, Integer quantity) {
         UpdateWrapper<GoodsSku> wrapper = new UpdateWrapper<>();
@@ -101,7 +98,6 @@ public class GoodsSkuServiceImpl implements GoodsSkuService {
     /**
      * ✅ 并发优化：原子增加库存
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public void addStock(Long id, Integer quantity) {
         UpdateWrapper<GoodsSku> wrapper = new UpdateWrapper<>();

@@ -30,7 +30,6 @@ public class GoodsServiceImpl implements GoodsService {
     @Autowired
     private GoodsMapper goodsMapper;
     
-    @Override
     public Goods createGoods(Goods goods) {
         goodsMapper.insert(goods);
         return goods;
@@ -39,36 +38,40 @@ public class GoodsServiceImpl implements GoodsService {
     /**
      * ✅ 性能优化：添加分页限制
      */
-    @Override
-    public List<Goods> getGoodsList(Integer page, Integer size) {
-        // 参数校验
-        int pageNum = page != null && page > 0 ? page : 1;
-        int pageSize = size != null && size > 0 ? Math.min(size, MAX_PAGE_SIZE) : DEFAULT_PAGE_SIZE;
+    public List<Goods> getGoodsList(Long merchantId, Integer status) {
+        QueryWrapper<Goods> wrapper = new QueryWrapper<>();
+        if (merchantId != null) {
+            wrapper.eq("merchant_id", merchantId);
+        }
+        if (status != null) {
+            wrapper.eq("status", status);
+        }
+        wrapper.last("LIMIT " + MAX_PAGE_SIZE); // 添加限制
         
-        Page<Goods> pageParam = new Page<>(pageNum, pageSize);
-        IPage<Goods> pageResult = goodsMapper.selectPage(pageParam, null);
-        
-        return pageResult.getRecords();
+        return goodsMapper.selectList(wrapper);
     }
     
-    @Override
     public Goods getGoodsById(Long id) {
         return goodsMapper.selectById(id);
     }
     
-    @Override
     public Goods updateGoods(Long id, Goods goods) {
         goods.setId(id);
         goodsMapper.updateById(goods);
         return goods;
     }
     
-    @Override
     public void deleteGoods(Long id) {
         goodsMapper.deleteById(id);
     }
     
-    @Override
+    public void updateStock(Long id, Integer stock) {
+        Goods goods = new Goods();
+        goods.setId(id);
+        goods.setStock(stock);
+        goodsMapper.updateById(goods);
+    }
+    
     public void updateGoodsStatus(Long id, Integer status) {
         Goods goods = new Goods();
         goods.setId(id);

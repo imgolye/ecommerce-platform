@@ -6,6 +6,7 @@ import com.b2b2c.goods_service.mapper.GoodsMapper;
 import com.b2b2c.goods_service.service.GoodsSearchService;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ public class GoodsSearchServiceImpl implements GoodsSearchService {
         int end = Math.min(start + size, all.size());
         
         if (start >= all.size()) {
-            return List.of();
+            return Collections.emptyList();
         }
         
         return all.subList(start, end);

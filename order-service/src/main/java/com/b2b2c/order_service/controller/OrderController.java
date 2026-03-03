@@ -42,7 +42,7 @@ public class OrderController {
             return Result.success(createdOrder);
         } catch (Exception e) {
             log.error("创建订单失败", e);
-            return Result.error(500, "创建订单失败");
+            return Result.failed(500, "创建订单失败");
         }
     }
     
@@ -57,7 +57,7 @@ public class OrderController {
         try {
             Order order = orderService.getOrderById(id);
             if (order == null) {
-                return Result.error(404, "订单不存在");
+                return Result.failed(404, "订单不存在");
             }
             
             // TODO: 在Service层校验订单归属
@@ -66,7 +66,7 @@ public class OrderController {
             return Result.success(order);
         } catch (Exception e) {
             log.error("查询订单失败", e);
-            return Result.error(500, "查询订单失败");
+            return Result.failed(500, "查询订单失败");
         }
     }
     
@@ -83,7 +83,7 @@ public class OrderController {
             return Result.success(orders);
         } catch (Exception e) {
             log.error("查询用户订单列表失败", e);
-            return Result.error(500, "查询失败");
+            return Result.failed(500, "查询失败");
         }
     }
     
@@ -101,7 +101,7 @@ public class OrderController {
             return Result.success(orders);
         } catch (Exception e) {
             log.error("查询商家订单列表失败", e);
-            return Result.error(500, "查询失败");
+            return Result.failed(500, "查询失败");
         }
     }
     
@@ -117,7 +117,7 @@ public class OrderController {
             return Result.success();
         } catch (Exception e) {
             log.error("更新订单状态失败", e);
-            return Result.error(500, "更新失败");
+            return Result.failed(500, "更新失败");
         }
     }
     
@@ -133,7 +133,7 @@ public class OrderController {
             return Result.success();
         } catch (Exception e) {
             log.error("取消订单失败", e);
-            return Result.error(500, "取消失败");
+            return Result.failed(500, "取消失败");
         }
     }
 }
