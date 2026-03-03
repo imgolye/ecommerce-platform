@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
         log.warn("[TraceId: {}] 业务异常: {} - {}", traceId, e.getCode(), e.getMessage());
         
         // 业务异常可以返回给客户端，但使用通用文案
-        return Result.error(e.getCode(), "操作失败：" + e.getMessage());
+        return Result.failed(e.getCode(), "操作失败：" + e.getMessage());
     }
     
     /**
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         
         log.warn("[TraceId: {}] 参数校验失败: {}", traceId, errorMessage);
         
-        return Result.error(400, "参数错误：" + errorMessage);
+        return Result.failed(400, "参数错误：" + errorMessage);
     }
     
     /**
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
             traceId, request.getRequestURL(), e.getMessage(), e);
         
         // 客户端返回通用错误信息
-        return Result.error(500, "系统繁忙，请稍后重试。TraceId: " + traceId);
+        return Result.failed(500, "系统繁忙，请稍后重试。TraceId: " + traceId);
     }
     
     /**
@@ -80,7 +80,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         log.error("[TraceId: {}] 空指针异常 - URL: {}", traceId, request.getRequestURL(), e);
         
-        return Result.error(500, "系统错误，请联系管理员。TraceId: " + traceId);
+        return Result.failed(500, "系统错误，请联系管理员。TraceId: " + traceId);
     }
     
     /**
@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         log.warn("[TraceId: {}] 非法参数: {}", traceId, e.getMessage());
         
-        return Result.error(400, "参数错误");
+        return Result.failed(400, "参数错误");
     }
     
     /**
