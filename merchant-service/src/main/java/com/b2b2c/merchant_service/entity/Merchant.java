@@ -16,6 +16,7 @@ public class Merchant extends BaseEntity {
     private String password;
     private String phone;
     private String email;
+    private String companyName;
     private String storeName;
     private Integer status;
     private Integer level;
@@ -60,6 +61,14 @@ public class Merchant extends BaseEntity {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 
     public String getStoreName() {

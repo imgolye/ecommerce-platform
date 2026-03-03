@@ -18,195 +18,147 @@ import com.b2b2c.merchant_service.service.MerchantService;
 import com.b2b2c.merchant_service.vo.MerchantLoginVO;
 import com.b2b2c.merchant_service.vo.MerchantVO;
 import com.b2b2c.merchant_service.vo.StoreVO;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 商家服务实现
+ */
+@Slf4j
 @Service
 public class MerchantServiceImpl implements MerchantService {
 
-    private final MerchantMapper merchantMapper;
-    private final MerchantStoreMapper merchantStoreMapper;
-    private final MerchantQualificationMapper merchantQualificationMapper;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-
-    public MerchantServiceImpl(MerchantMapper merchantMapper, MerchantStoreMapper merchantStoreMapper,
-                               MerchantQualificationMapper merchantQualificationMapper,
-                               PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
-        this.merchantMapper = merchantMapper;
-        this.merchantStoreMapper = merchantStoreMapper;
-        this.merchantQualificationMapper = merchantQualificationMapper;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-    }
+    @Autowired
+    private MerchantMapper merchantMapper;
+    
+    @Autowired
+    private MerchantStoreMapper merchantStoreMapper;
+    
+    @Autowired
+    private MerchantQualificationMapper merchantQualificationMapper;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public MerchantVO register(MerchantRegisterDTO registerDTO) {
-        Merchant existByUsername = merchantMapper.selectOne(new LambdaQueryWrapper<Merchant>()
-                .eq(Merchant::getUsername, registerDTO.getUsername()));
-        if (existByUsername != null) {
-            throw new BusinessException("用户名已存在");
+    public MerchantVO register(MerchantRegisterDTO dto) {
+        // 检查用户名是否已存在
+        LambdaQueryWrapper<Merchant> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Merchant::getUsername, dto.getUsername());
+        if (merchantMapper.selectCount(wrapper) > 0) {
+            throw new BusinessException(400, "用户名已存在");
         }
-        Merchant existByPhone = merchantMapper.selectOne(new LambdaQueryWrapper<Merchant>()
-                .eq(Merchant::getPhone, registerDTO.getPhone()));
-        if (existByPhone != null) {
-            throw new BusinessException("手机号已注册");
-        }
-
+        
+        // 创建商家
         Merchant merchant = new Merchant();
-        merchant.setUsername(registerDTO.getUsername());
-        merchant.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-        merchant.setPhone(registerDTO.getPhone());
-        merchant.setEmail(registerDTO.getEmail());
-        merchant.setStoreName(registerDTO.getStoreName());
-        merchant.setStatus(0);
-        merchant.setLevel(1);
-
-        int inserted = merchantMapper.insert(merchant);
-        if (inserted <= 0 || merchant.getId() == null) {
-            throw new BusinessException("商家注册失败");
-        }
-
-        MerchantStore store = new MerchantStore();
-        store.setMerchantId(merchant.getId());
-        store.setName(registerDTO.getStoreName());
-        store.setStatus(0);
-        merchantStoreMapper.insert(store);
-        return toMerchantVO(merchant);
-    }
-
-    @Override
-    public MerchantLoginVO login(MerchantLoginDTO loginDTO) {
-        Merchant merchant = merchantMapper.selectOne(new LambdaQueryWrapper<Merchant>()
-                .eq(Merchant::getUsername, loginDTO.getUsername()));
-        if (merchant == null) {
-            throw new BusinessException("商家不存在");
-        }
-        if (merchant.getStatus() == null || merchant.getStatus() != 1) {
-            throw new BusinessException("商家账号待审核或已禁用");
-        }
-        if (!passwordEncoder.matches(loginDTO.getPassword(), merchant.getPassword())) {
-            throw new BusinessException("用户名或密码错误");
-        }
-
-        MerchantLoginVO vo = new MerchantLoginVO();
-        vo.setToken(jwtUtil.generateToken(merchant.getId(), merchant.getUsername()));
-        vo.setTokenHead("Bearer");
-        vo.setExpiresIn(jwtUtil.getExpiration());
-        vo.setMerchant(toMerchantVO(merchant));
+        merchant.setUsername(dto.getUsername());
+        merchant.setPassword(dto.getPassword()); // TODO: 实际生产环境需要加密
+        merchant.setPhone(dto.getPhone());
+        merchant.setCompanyName(dto.getCompanyName());
+        merchant.setStatus(0); // 待审核
+        
+        merchantMapper.insert(merchant);
+        log.info("商家注册成功 - ID: {}, 用户名: {}", merchant.getId(), merchant.getUsername());
+        
+        // 返回商家信息
+        MerchantVO vo = new MerchantVO();
+        BeanUtils.copyProperties(merchant, vo);
         return vo;
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void submitQualification(Long merchantId, QualificationDTO qualificationDTO) {
-        Merchant merchant = merchantMapper.selectById(merchantId);
+    public MerchantLoginVO login(MerchantLoginDTO dto) {
+        // 查询商家
+        LambdaQueryWrapper<Merchant> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Merchant::getUsername, dto.getUsername());
+        Merchant merchant = merchantMapper.selectOne(wrapper);
+        
         if (merchant == null) {
-            throw new BusinessException("商家不存在");
+            throw new BusinessException(400, "用户名或密码错误");
         }
-
-        MerchantQualification qualification = new MerchantQualification();
-        qualification.setMerchantId(merchantId);
-        qualification.setType(qualificationDTO.getType());
-        qualification.setImageUrl(qualificationDTO.getImageUrl());
-        qualification.setStatus(0);
-        merchantQualificationMapper.insert(qualification);
-
-        merchantMapper.update(null, new LambdaUpdateWrapper<Merchant>()
-                .eq(Merchant::getId, merchantId)
-                .set(Merchant::getStatus, 0));
-    }
-
-    @Override
-    public StoreVO getStoreInfo(Long merchantId) {
-        MerchantStore store = merchantStoreMapper.selectOne(new LambdaQueryWrapper<MerchantStore>()
-                .eq(MerchantStore::getMerchantId, merchantId));
-        if (store == null) {
-            throw new BusinessException("店铺信息不存在");
+        
+        // 验证密码
+        if (!dto.getPassword().equals(merchant.getPassword())) {
+            throw new BusinessException(400, "用户名或密码错误");
         }
-        return toStoreVO(store);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public StoreVO updateStoreInfo(Long merchantId, StoreDTO storeDTO) {
-        Merchant merchant = merchantMapper.selectById(merchantId);
-        if (merchant == null) {
-            throw new BusinessException("商家不存在");
-        }
-
-        MerchantStore store = merchantStoreMapper.selectOne(new LambdaQueryWrapper<MerchantStore>()
-                .eq(MerchantStore::getMerchantId, merchantId));
-
-        if (store == null) {
-            store = new MerchantStore();
-            store.setMerchantId(merchantId);
-            store.setName(storeDTO.getName());
-            store.setLogo(storeDTO.getLogo());
-            store.setDescription(storeDTO.getDescription());
-            store.setProvince(storeDTO.getProvince());
-            store.setCity(storeDTO.getCity());
-            store.setAddress(storeDTO.getAddress());
-            store.setBusinessLicense(storeDTO.getBusinessLicense());
-            store.setStatus(0);
-            merchantStoreMapper.insert(store);
-        } else {
-            merchantStoreMapper.update(null, new LambdaUpdateWrapper<MerchantStore>()
-                    .eq(MerchantStore::getMerchantId, merchantId)
-                    .set(MerchantStore::getName, storeDTO.getName())
-                    .set(MerchantStore::getLogo, storeDTO.getLogo())
-                    .set(MerchantStore::getDescription, storeDTO.getDescription())
-                    .set(MerchantStore::getProvince, storeDTO.getProvince())
-                    .set(MerchantStore::getCity, storeDTO.getCity())
-                    .set(MerchantStore::getAddress, storeDTO.getAddress())
-                    .set(MerchantStore::getBusinessLicense, storeDTO.getBusinessLicense()));
-            store = merchantStoreMapper.selectOne(new LambdaQueryWrapper<MerchantStore>()
-                    .eq(MerchantStore::getMerchantId, merchantId));
-        }
-
-        merchantMapper.update(null, new LambdaUpdateWrapper<Merchant>()
-                .eq(Merchant::getId, merchantId)
-                .set(Merchant::getStoreName, storeDTO.getName()));
-
-        return toStoreVO(store);
+        
+        // 生成Token
+        String token = jwtUtil.generateToken(merchant.getId(), merchant.getUsername());
+        
+        MerchantLoginVO vo = new MerchantLoginVO();
+        vo.setMerchantId(merchant.getId());
+        vo.setToken(token);
+        vo.setExpiresIn(jwtUtil.getExpiration());
+        
+        return vo;
     }
 
     @Override
     public MerchantVO getMerchantInfo(Long merchantId) {
         Merchant merchant = merchantMapper.selectById(merchantId);
         if (merchant == null) {
-            throw new BusinessException("商家不存在");
+            throw new BusinessException(404, "商家不存在");
         }
-        return toMerchantVO(merchant);
-    }
-
-    private MerchantVO toMerchantVO(Merchant merchant) {
+        
         MerchantVO vo = new MerchantVO();
-        vo.setId(merchant.getId());
-        vo.setUsername(merchant.getUsername());
-        vo.setPhone(merchant.getPhone());
-        vo.setEmail(merchant.getEmail());
-        vo.setStoreName(merchant.getStoreName());
-        vo.setStatus(merchant.getStatus());
-        vo.setLevel(merchant.getLevel());
-        vo.setCreatedAt(merchant.getCreatedAt());
+        BeanUtils.copyProperties(merchant, vo);
         return vo;
     }
 
-    private StoreVO toStoreVO(MerchantStore store) {
+    @Override
+    public StoreVO getStoreInfo(Long merchantId) {
+        LambdaQueryWrapper<MerchantStore> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MerchantStore::getMerchantId, merchantId);
+        MerchantStore store = merchantStoreMapper.selectOne(wrapper);
+        if (store == null) {
+            throw new BusinessException(404, "店铺不存在");
+        }
+        
         StoreVO vo = new StoreVO();
-        vo.setId(store.getId());
-        vo.setMerchantId(store.getMerchantId());
-        vo.setName(store.getName());
-        vo.setLogo(store.getLogo());
-        vo.setDescription(store.getDescription());
-        vo.setProvince(store.getProvince());
-        vo.setCity(store.getCity());
-        vo.setAddress(store.getAddress());
-        vo.setBusinessLicense(store.getBusinessLicense());
-        vo.setStatus(store.getStatus());
+        BeanUtils.copyProperties(store, vo);
         return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public StoreVO updateStoreInfo(Long merchantId, StoreDTO dto) {
+        LambdaQueryWrapper<MerchantStore> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MerchantStore::getMerchantId, merchantId);
+        MerchantStore store = merchantStoreMapper.selectOne(wrapper);
+        if (store == null) {
+            // 如果店铺不存在，则创建
+            store = new MerchantStore();
+            store.setMerchantId(merchantId);
+            BeanUtils.copyProperties(dto, store);
+            merchantStoreMapper.insert(store);
+            log.info("店铺创建成功 - ID: {}, 商家ID: {}", store.getId(), merchantId);
+        } else {
+            // 更新店铺信息
+            BeanUtils.copyProperties(dto, store);
+            merchantStoreMapper.updateById(store);
+            log.info("店铺更新成功 - ID: {}, 商家ID: {}", store.getId(), merchantId);
+        }
+        
+        StoreVO vo = new StoreVO();
+        BeanUtils.copyProperties(store, vo);
+        return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void submitQualification(Long merchantId, QualificationDTO dto) {
+        MerchantQualification qualification = new MerchantQualification();
+        qualification.setMerchantId(merchantId);
+        BeanUtils.copyProperties(dto, qualification);
+        
+        merchantQualificationMapper.insert(qualification);
+        log.info("资质提交成功 - 商家ID: {}", merchantId);
     }
 }

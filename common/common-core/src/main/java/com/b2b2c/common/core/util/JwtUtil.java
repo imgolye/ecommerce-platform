@@ -116,7 +116,26 @@ public class JwtUtil {
     }
     
     /**
-     * 验证Token
+     * 获取过期时间配置（毫秒）
+     */
+    public Long getExpiration() {
+        return expiration;
+    }
+    
+    /**
+     * 验证Token（单参数版本）
+     */
+    public Boolean validateToken(String token) {
+        try {
+            Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * 验证Token（双参数版本）
      */
     public Boolean validateToken(String token, String username) {
         final String tokenUsername = getUsernameFromToken(token);

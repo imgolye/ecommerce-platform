@@ -20,6 +20,9 @@ public class MerchantVO {
     @ApiModelProperty("邮箱")
     private String email;
 
+    @ApiModelProperty("公司名称")
+    private String companyName;
+
     @ApiModelProperty("店铺名称")
     private String storeName;
 
@@ -62,6 +65,14 @@ public class MerchantVO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 
     public String getStoreName() {
