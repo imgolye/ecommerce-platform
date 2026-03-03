@@ -25,7 +25,7 @@ public enum OrderStatus {
         return code;
     }
 
-    public String getDesc() {
+    public String getDescription() {
         return desc;
     }
     

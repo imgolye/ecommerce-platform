@@ -1,13 +1,13 @@
 package com.b2b2c.order_service.service;
 
+import com.b2b2c.order_service.dto.OrderCreateDTO;
 import com.b2b2c.order_service.entity.Order;
 import java.util.List;
 
 public interface OrderService {
-    Order createOrder(Order order);
-    Order getOrderById(Long id);
+    Order createOrder(OrderCreateDTO dto);
+    Order getOrderById(Long orderId);
     List<Order> getUserOrders(Long userId);
-    List<Order> getMerchantOrders(Long merchantId);
-    Order updateOrderStatus(Long id, Integer status);
-    void cancelOrder(Long id);
+    Order updateOrderStatus(Long orderId, Integer status);
+    void cancelOrder(Long orderId);
 }

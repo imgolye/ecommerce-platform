@@ -16,14 +16,12 @@ public class OrderItemServiceImpl implements OrderItemService {
         this.orderItemMapper = orderItemMapper;
     }
 
-    @Override
     public List<OrderItem> getOrderItems(Long orderId) {
         QueryWrapper<OrderItem> wrapper = new QueryWrapper<>();
         wrapper.eq("order_id", orderId);
         return orderItemMapper.selectList(wrapper);
     }
 
-    @Override
     public OrderItem addOrderItem(OrderItem item) {
         orderItemMapper.insert(item);
         return item;
