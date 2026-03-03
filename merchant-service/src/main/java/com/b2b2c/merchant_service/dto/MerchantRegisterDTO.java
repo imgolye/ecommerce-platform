@@ -2,9 +2,6 @@ package com.b2b2c.merchant_service.dto;
 
 import lombok.Data;
 
-/**
- * 商家注册DTO
- */
 @Data
 public class MerchantRegisterDTO {
     private String username;
