@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 @TableName("orders")
@@ -23,6 +25,6 @@ public class Order {
     private String receiverPhone;
     private String receiverAddress;
     private String remark;
-    private java.util.Date createdAt;
-    private java.util.Date updatedAt;
+    private Date createdAt;
+    private Date updatedAt;
 }

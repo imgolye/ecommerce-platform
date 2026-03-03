@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 @TableName("order_items")
@@ -21,5 +23,5 @@ public class OrderItem {
     private BigDecimal price;
     private Integer quantity;
     private BigDecimal totalAmount;
-    private java.util.Date createdAt;
+    private Date createdAt;
 }
