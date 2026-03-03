@@ -221,3 +221,144 @@ CREATE TABLE IF NOT EXISTS merchant_withdrawal (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY idx_merchant_withdrawal_merchant_id (merchant_id)
 );
+
+-- ==================== 商品模块表（Phase 4）====================
+
+-- 商品分类表
+CREATE TABLE IF NOT EXISTS goods_category (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    parent_id BIGINT DEFAULT 0 COMMENT '父分类ID',
+    name VARCHAR(64) NOT NULL COMMENT '分类名称',
+    level INT NOT NULL DEFAULT 1 COMMENT '层级',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序',
+    icon VARCHAR(255) COMMENT '图标',
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_parent_id (parent_id),
+    KEY idx_level (level)
+) COMMENT='商品分类表';
+
+-- 品牌表
+CREATE TABLE IF NOT EXISTS goods_brand (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(64) NOT NULL COMMENT '品牌名称',
+    logo VARCHAR(255) COMMENT '品牌Logo',
+    description TEXT COMMENT '品牌描述',
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_name (name)
+) COMMENT='品牌表';
+
+-- 商品主表（SPU）
+CREATE TABLE IF NOT EXISTS goods (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL COMMENT '商家ID',
+    category_id BIGINT COMMENT '分类ID',
+    brand_id BIGINT COMMENT '品牌ID',
+    name VARCHAR(255) NOT NULL COMMENT '商品名称',
+    subtitle VARCHAR(500) COMMENT '商品副标题',
+    price DECIMAL(10,2) NOT NULL COMMENT '价格',
+    original_price DECIMAL(10,2) COMMENT '原价',
+    stock INT NOT NULL DEFAULT 0 COMMENT '库存',
+    sales INT NOT NULL DEFAULT 0 COMMENT '销量',
+    main_image VARCHAR(255) COMMENT '主图',
+    images TEXT COMMENT '商品图片（JSON）',
+    detail TEXT COMMENT '商品详情',
+    status TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-下架，1-上架，2-审核中',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_merchant_id (merchant_id),
+    KEY idx_category_id (category_id),
+    KEY idx_brand_id (brand_id),
+    KEY idx_status (status)
+) COMMENT='商品主表';
+
+-- SKU规格表
+CREATE TABLE IF NOT EXISTS goods_sku (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    goods_id BIGINT NOT NULL COMMENT '商品ID',
+    name VARCHAR(255) NOT NULL COMMENT 'SKU名称',
+    spec VARCHAR(500) COMMENT '规格（JSON）',
+    price DECIMAL(10,2) NOT NULL COMMENT '价格',
+    stock INT NOT NULL DEFAULT 0 COMMENT '库存',
+    image VARCHAR(255) COMMENT 'SKU图片',
+    sku_code VARCHAR(64) COMMENT 'SKU编码',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_goods_id (goods_id),
+    UNIQUE KEY uk_sku_code (sku_code)
+) COMMENT='SKU规格表';
+
+-- 规格选项表
+CREATE TABLE IF NOT EXISTS goods_spec (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    goods_id BIGINT NOT NULL COMMENT '商品ID',
+    name VARCHAR(64) NOT NULL COMMENT '规格名称',
+    value VARCHAR(64) NOT NULL COMMENT '规格值',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_goods_id (goods_id)
+) COMMENT='规格选项表';
+
+-- 商品图片表
+CREATE TABLE IF NOT EXISTS goods_image (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    goods_id BIGINT NOT NULL COMMENT '商品ID',
+    url VARCHAR(255) NOT NULL COMMENT '图片URL',
+    sort INT NOT NULL DEFAULT 0 COMMENT '排序',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_goods_id (goods_id)
+) COMMENT='商品图片表';
+
+-- 库存记录表
+CREATE TABLE IF NOT EXISTS goods_stock_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    goods_id BIGINT NOT NULL COMMENT '商品ID',
+    sku_id BIGINT COMMENT 'SKU ID',
+    change_type TINYINT NOT NULL COMMENT '变动类型：1-增加，2-减少',
+    change_num INT NOT NULL COMMENT '变动数量',
+    before_stock INT NOT NULL COMMENT '变动前库存',
+    after_stock INT NOT NULL COMMENT '变动后库存',
+    remark VARCHAR(255) COMMENT '备注',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_goods_id (goods_id),
+    KEY idx_sku_id (sku_id)
+) COMMENT='库存记录表';
+
+-- 商品评价表
+CREATE TABLE IF NOT EXISTS goods_comment (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    goods_id BIGINT NOT NULL COMMENT '商品ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    order_id BIGINT COMMENT '订单ID',
+    content TEXT NOT NULL COMMENT '评价内容',
+    images TEXT COMMENT '评价图片（JSON）',
+    rating TINYINT NOT NULL COMMENT '评分：1-5',
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-隐藏，1-显示',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_goods_id (goods_id),
+    KEY idx_user_id (user_id)
+) COMMENT='商品评价表';
+
+-- 商品标签表
+CREATE TABLE IF NOT EXISTS goods_tag (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    goods_id BIGINT NOT NULL COMMENT '商品ID',
+    name VARCHAR(64) NOT NULL COMMENT '标签名称',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_goods_id (goods_id)
+) COMMENT='商品标签表';
+
+-- 商品收藏表
+CREATE TABLE IF NOT EXISTS goods_favorite (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    goods_id BIGINT NOT NULL COMMENT '商品ID',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_goods (user_id, goods_id),
+    KEY idx_user_id (user_id),
+    KEY idx_goods_id (goods_id)
+) COMMENT='商品收藏表';
+

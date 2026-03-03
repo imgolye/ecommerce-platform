@@ -86,9 +86,13 @@ public class MerchantController {
             throw new BusinessException(401, "未登录或token格式错误");
         }
         String token = authorization.substring(7);
-        if (!jwtUtil.validateToken(token)) {
-            throw new BusinessException(401, "token无效或已过期");
+        try {
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(401, "token无效或已过期");
+            }
+            return jwtUtil.getUserIdFromToken(token);
+        } catch (Exception e) {
+            throw new BusinessException(401, "token解析失败：" + e.getMessage());
         }
-        return jwtUtil.getUserIdFromToken(token);
     }
 }
