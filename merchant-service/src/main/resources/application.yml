@@ -1,23 +1,18 @@
 server:
-  port: 8002
+  port: 9002
 
 spring:
-  application:
-    name: merchant-service
   datasource:
-    url: jdbc:mysql://localhost:3306/b2b2c_platform?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/b2b2c_platform?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: 12345678
     driver-class-name: com.mysql.cj.jdbc.Driver
-  redis:
-    host: localhost
-    port: 6379
 
 mybatis-plus:
-  mapper-locations: classpath*:/mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*.xml
 
 jwt:
-  secret: b2b2c-merchant-service-jwt-secret
-  expiration: 86400
+  secret: b2b2c-platform-jwt-secret-key-must-be-at-least-32-characters-long-for-security
+  expiration: 86400000
